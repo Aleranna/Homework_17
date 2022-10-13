@@ -12,10 +12,10 @@ genres_ns = api.namespace('genres')
 
 movies_schema = MovieSchema(many=True)
 movie_schema = MovieSchema()
-#directors_schema = DirectorSchema(many=True)
-#director_schema = DirectorSchema()
-#genres_schema = GenreSchema(many=True)
-#genre_schema = GenreSchema()
+directors_schema = DirectorSchema(many=True)
+director_schema = DirectorSchema()
+genres_schema = GenreSchema(many=True)
+genre_schema = GenreSchema()
 
 
 @movie_ns.route('/')
@@ -48,6 +48,18 @@ class MovieView(Resource):
 
 @director_ns.route('/')
 class DirectorsView(Resource):
+    def get(self):
+        page = request.args.get('page')
+        try:
+            directors = Director.query
+            if page:
+                directors = directors.paginate(int(page), 3).items
+            all_directors = directors_schema.dump(directors)
+            return all_directors
+        except Exception as e:
+            print(e)
+            return 'Ошибка!'
+
     def post(self):
         req_json = request.json
         try:
@@ -57,10 +69,17 @@ class DirectorsView(Resource):
                 return 'New info added', 201
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
 
 @director_ns.route('/<int:did>')
 class DirectorView(Resource):
+    def get(self, did):
+        director = Director.query.get(did)
+        if not director:
+            return 'Not Found', 404
+        return director_schema.dump(director), 200
+
     def put(self, did):
         req_json = request.json
         try:
@@ -71,6 +90,7 @@ class DirectorView(Resource):
             return 'info updated', 204
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
     def delete(self, did):
         try:
@@ -80,10 +100,23 @@ class DirectorView(Resource):
             return 'info deleted', 204
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
 
 @genres_ns.route('/')
 class GenresView(Resource):
+    def get(self):
+        page = request.args.get('page')
+        try:
+            genres = Genre.query
+            if page:
+                genres = genres.paginate(int(page), 3).items
+            all_genres = genres_schema.dump(genres)
+            return all_genres
+        except Exception as e:
+            print(e)
+            return 'Ошибка!'
+
     def post(self):
         req_json = request.json
         try:
@@ -93,10 +126,17 @@ class GenresView(Resource):
                 return 'New info added', 201
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
 
 @genres_ns.route('/<int:gid>')
 class GenreView(Resource):
+    def get(self, gid):
+        genre = Genre.query.get(gid)
+        if not genre:
+            return 'Not Found', 404
+        return genre_schema.dump(genre), 200
+
     def put(self, gid):
         req_json = request.json
         try:
@@ -107,6 +147,7 @@ class GenreView(Resource):
             return 'info updated', 204
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
     def delete(self, gid):
         try:
@@ -116,6 +157,7 @@ class GenreView(Resource):
             return 'info deleted', 204
         except Exception as e:
             print(e)
+            return 'Ошибка!'
 
 
 if __name__ == '__main__':
